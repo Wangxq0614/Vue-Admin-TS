@@ -84,5 +84,15 @@ export default class Register extends Vue {
       cursor: pointer;
     }
   }
+  .el-form-item {
+    position: relative;
+    .iconfont {
+      position: absolute;
+      top: 0;
+      right: 15px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+  }
 }
 </style>

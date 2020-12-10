@@ -13,10 +13,16 @@
         <el-input
           v-model="registerData.password"
           placeholder="请输入密码"
-          type="password"
           prefix-icon="el-icon-lock"
+          v-bind:type="[passInputType ? 'password' : 'text']"
         >
         </el-input>
+        <i
+          v-if="registerData.password"
+          @click="passIsShow"
+          class="iconfont"
+          v-bind:class="[passInputType ? 'icon-zhengyan' : 'icon-biyan']"
+        ></i>
       </el-form-item>
       <el-form-item prop="checkPassword">
         <el-input
@@ -32,8 +38,9 @@
           <el-col :span="16">
             <el-input
               v-model="registerData.captcha"
-              placeholder="请输入验证码"
+              placeholder="请输入验证码,区分大小写！"
               prefix-icon="el-icon-key"
+              @keyup.native.enter="onSubmit"
             >
             </el-input>
           </el-col>
@@ -207,6 +214,12 @@ export default class Phone extends Vue {
   // 重置表单
   public resetForm() {
     this.form.resetFields();
+  }
+
+  // 密码明文切换
+  passInputType = true;
+  passIsShow() {
+    this.passInputType = !this.passInputType;
   }
 
   // 获取验证码按钮是或否可用
