@@ -16,14 +16,14 @@
             v-model="loginData.password"
             placeholder="请输入密码"
             prefix-icon="el-icon-lock"
-            v-bind:type="[passInputType ? 'password' : 'text']"
+            v-bind:type="passInputType ? 'password' : 'text'"
           >
           </el-input>
           <i
             v-if="loginData.password"
             @click="passIsShow"
             class="iconfont"
-            v-bind:class="[passInputType ? 'icon-zhengyan' : 'icon-biyan']"
+            v-bind:class="passInputType ? 'icon-zhengyan' : 'icon-biyan'"
           ></i>
         </el-form-item>
         <el-form-item prop="captcha">

@@ -1,0 +1,20 @@
+<template>
+  <div class="Roles">
+    Roles
+  </div>
+</template>
+
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+
+@Component({
+  name: "Roles",
+  components: {}
+})
+export default class Roles extends Vue {}
+</script>
+
+<style lang="scss" scope>
+.Roles {
+}
+</style>

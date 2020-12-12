@@ -14,14 +14,14 @@
           v-model="registerData.password"
           placeholder="请输入密码"
           prefix-icon="el-icon-lock"
-          v-bind:type="[passInputType ? 'password' : 'text']"
+          v-bind:type="passInputType ? 'password' : 'text'"
         >
         </el-input>
         <i
           v-if="registerData.password"
           @click="passIsShow"
           class="iconfont"
-          v-bind:class="[passInputType ? 'icon-zhengyan' : 'icon-biyan']"
+          v-bind:class="passInputType ? 'icon-zhengyan' : 'icon-biyan'"
         ></i>
       </el-form-item>
       <el-form-item prop="checkPassword">
@@ -45,11 +45,11 @@
             </el-input>
           </el-col>
           <el-col :span="8">
-            <el-button @click="sendPhonelCode" :disabled="getCode.isDisabled">
+            <el-button @click="sendPhonelCode" :disabled="!getCode.isDisabled">
               {{
                 getCode.isDisabled
                   ? getCode.intervalTime + "s"
-                  : "获取验证码..."
+                  : "暂时不可用..."
               }}
             </el-button>
           </el-col>
@@ -75,6 +75,7 @@ import { Component, Vue, Ref } from "vue-property-decorator";
 // Element组件表单类型
 import { ElForm } from "element-ui/types/form";
 import { sendCode2Phone, registerUser } from "../../api/index";
+import { sendCode, passIsShow } from "../../tools/index";
 
 @Component({
   name: "Phone",
@@ -89,11 +90,6 @@ export default class Phone extends Vue {
     checkPassword: "",
     captcha: "",
     checked: true
-  };
-  // 获取验证码倒计时
-  private getCode = {
-    isDisabled: false,
-    intervalTime: 60
   };
 
   /* ======================================================================= */
@@ -157,30 +153,15 @@ export default class Phone extends Vue {
 
   /* ======================================================================= */
   // 发送手机验证码
+
+  // 获取验证码倒计时
+  private getCode = {
+    isDisabled: false,
+    intervalTime: 60
+  };
   private sendPhonelCode() {
-    // validateFiled； 对单个表单验证
-    this.form.validateField("phone", phoneCode => {
-      if (!phoneCode) {
-        // 禁用获取验证码
-        this.isDisabledSendCode();
-        // 发送验证码
-        sendCode2Phone({ email: this.registerData.phone })
-          .then((response: any) => {
-            // 进一步判断
-            if (response.status === 200 && response.data.code === 200) {
-              // 验证码发送成功
-              (this as any).$message.success("验证码已发送！");
-            } else {
-              // 验证码过期或发送失败，重新获取
-              (this as any).$message.error(response.data.msg);
-            }
-          })
-          .catch((error: any) => {
-            // 注册失败
-            this.$message.error(error.response.data.msg);
-          });
-      }
-    });
+    const phoneCode = { phone: this.registerData.phone };
+    sendCode("phone", sendCode2Phone, phoneCode, this);
   }
   // 提交注册
   @Ref() readonly form!: ElForm;
@@ -210,32 +191,15 @@ export default class Phone extends Vue {
       }
     });
   }
-
   // 重置表单
   public resetForm() {
     this.form.resetFields();
   }
 
   // 密码明文切换
-  passInputType = true;
-  passIsShow() {
-    this.passInputType = !this.passInputType;
-  }
-
-  // 获取验证码按钮是或否可用
-  private isDisabledSendCode() {
-    this.getCode.isDisabled = true;
-
-    const timerId = setInterval(() => {
-      this.getCode.intervalTime--;
-      if (this.getCode.intervalTime <= 0) {
-        clearInterval(timerId);
-        this.getCode = {
-          isDisabled: false,
-          intervalTime: 60
-        };
-      }
-    }, 1000);
+  private passInputType = true;
+  private passIsShow() {
+    passIsShow(this);
   }
 }
 </script>

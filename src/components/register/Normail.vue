@@ -14,14 +14,14 @@
           v-model="registerData.password"
           placeholder="请输入密码"
           prefix-icon="el-icon-lock"
-          v-bind:type="[passInputType ? 'password' : 'text']"
+          v-bind:type="passInputType ? 'password' : 'text'"
         >
         </el-input>
         <i
           v-if="registerData.password"
           @click="passIsShow"
           class="iconfont"
-          v-bind:class="[passInputType ? 'icon-zhengyan' : 'icon-biyan']"
+          v-bind:class="passInputType ? 'icon-zhengyan' : 'icon-biyan'"
         ></i>
       </el-form-item>
       <el-form-item prop="checkPassword">
@@ -77,6 +77,7 @@ import { Component, Vue, Ref } from "vue-property-decorator";
 // Element组件表单类型
 import { ElForm } from "element-ui/types/form";
 import { registerUser } from "../../api/index";
+import { passIsShow } from "../../tools/index";
 
 @Component({
   name: "Normail",
@@ -196,9 +197,9 @@ export default class Normail extends Vue {
   }
 
   // 密码明文切换
-  passInputType = true;
-  passIsShow() {
-    this.passInputType = !this.passInputType;
+  private passInputType = true;
+  private passIsShow() {
+    passIsShow(this);
   }
 
   // 重置表单

@@ -14,14 +14,14 @@
           v-model="registerData.password"
           placeholder="请输入密码"
           prefix-icon="el-icon-lock"
-          v-bind:type="[passInputType ? 'password' : 'text']"
+          v-bind:type="passInputType ? 'password' : 'text'"
         >
         </el-input>
         <i
           v-if="registerData.password"
           @click="passIsShow"
           class="iconfont"
-          v-bind:class="[passInputType ? 'icon-zhengyan' : 'icon-biyan']"
+          v-bind:class="passInputType ? 'icon-zhengyan' : 'icon-biyan'"
         ></i>
       </el-form-item>
       <el-form-item prop="checkPassword">
@@ -75,6 +75,7 @@ import { Component, Vue, Ref } from "vue-property-decorator";
 // Element组件表单类型
 import { ElForm } from "element-ui/types/form";
 import { sendCode2Email, registerUser } from "../../api/index";
+import { sendCode, passIsShow } from "../../tools/index";
 
 @Component({
   name: "Email",
@@ -90,13 +91,6 @@ export default class Email extends Vue {
     captcha: "",
     checked: true
   };
-  // 获取验证码倒计时
-  private getCode = {
-    isDisabled: false,
-    intervalTime: 60
-  };
-
-  /* ======================================================================= */
   // 邮箱校验
   private validateEmail = (rule: any, value: string, callback: any) => {
     const reg = /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
@@ -155,34 +149,17 @@ export default class Email extends Vue {
     checked: [{ validator: this.validateChecked, trigger: "change" }]
   };
 
-  /* ======================================================================= */
-
   // 发送邮箱验证码
+  // 获取验证码倒计时
+  private getCode = {
+    isDisabled: false,
+    intervalTime: 60
+  };
   private sendEmailCode() {
-    // validateFiled； 对单个表单验证
-    this.form.validateField("email", emailCode => {
-      if (!emailCode) {
-        // 禁用获取验证码
-        this.isDisabledSendCode();
-        // 发送验证码
-        sendCode2Email({ email: this.registerData.email })
-          .then((response: any) => {
-            // 进一步判断
-            if (response.status === 200 && response.data.code === 200) {
-              // 验证码发送成功
-              (this as any).$message.success("验证码已发送！");
-            } else {
-              // 验证码过期或发送失败，重新获取
-              (this as any).$message.error(response.data.msg);
-            }
-          })
-          .catch((error: any) => {
-            // 注册失败
-            (this as any).$message.error(error.response.data.msg);
-          });
-      }
-    });
+    const emailCode = { email: this.registerData.email };
+    sendCode("email", sendCode2Email, emailCode, this);
   }
+
   // 提交注册
   @Ref() readonly form!: ElForm;
   private onSubmit() {
@@ -218,25 +195,9 @@ export default class Email extends Vue {
   }
 
   // 密码明文切换
-  passInputType = true;
-  passIsShow() {
-    this.passInputType = !this.passInputType;
-  }
-
-  // 获取验证码按钮是或否可用
-  private isDisabledSendCode() {
-    this.getCode.isDisabled = true;
-
-    const timerId = setInterval(() => {
-      this.getCode.intervalTime--;
-      if (this.getCode.intervalTime <= 0) {
-        clearInterval(timerId);
-        this.getCode = {
-          isDisabled: false,
-          intervalTime: 60
-        };
-      }
-    }, 1000);
+  private passInputType = true;
+  private passIsShow() {
+    passIsShow(this);
   }
 }
 </script>

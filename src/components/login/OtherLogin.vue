@@ -1,9 +1,9 @@
 <template>
   <div class="OtherLogin">
-    <i class="iconfont icon-weibo"></i>
-    <i class="iconfont icon-qq"></i>
-    <i class="iconfont icon-gongzhonghao"></i>
-    <i class="iconfont icon-github"></i>
+    <a href="#"><i class="iconfont icon-weibo"></i></a>
+    <a href="#"><i class="iconfont icon-qq"></i></a>
+    <a href="#"><i class="iconfont icon-gongzhonghao"></i></a>
+    <a href="#"> <i class="iconfont icon-github"> </i></a>
   </div>
 </template>
 
@@ -41,18 +41,19 @@ export default class OtherLogin extends Vue {}
     left: 50%;
     transform: translate(-50%, -50%);
   }
-  i {
+  a {
     width: 40px;
     height: 40px;
     line-height: 40px;
     text-align: center;
-    font-size: 30px;
-    cursor: pointer;
-    transition: all 0.1s linear;
-    color: #666;
-    &:hover {
-      font-size: 35px;
-      color: #333;
+    i {
+      font-size: 30px;
+      transition: all 0.1s linear;
+      color: #666;
+      &:hover {
+        font-size: 35px;
+        color: #333;
+      }
     }
   }
 }
