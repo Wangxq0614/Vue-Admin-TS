@@ -43,11 +43,7 @@ const sendCode = (type: string, sendApi: any, obj: {}, that: any) => {
   });
 };
 
-const passIsShow = (that: any) => {
-  return (that.passInputType = !that.passInputType);
-};
-
-export { sendCode, passIsShow };
+export { sendCode };
 
 // private sendPhonelCode() {
 //   // validateFiled； 对单个表单验证

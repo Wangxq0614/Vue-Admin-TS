@@ -6,7 +6,7 @@
       </h2>
       <el-tabs
         tab-position="left"
-        style="height: 385px"
+        style="height: 325px"
         @tab-click="handleClick"
       >
         <el-tab-pane label="普通注册"

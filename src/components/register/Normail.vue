@@ -24,15 +24,6 @@
           v-bind:class="passInputType ? 'icon-zhengyan' : 'icon-biyan'"
         ></i>
       </el-form-item>
-      <el-form-item prop="checkPassword">
-        <el-input
-          v-model="registerData.checkPassword"
-          placeholder="请再次输入密码"
-          type="password"
-          prefix-icon="el-icon-lock"
-        >
-        </el-input>
-      </el-form-item>
       <el-form-item prop="captcha">
         <el-row :gutter="15">
           <el-col :span="16">
@@ -77,19 +68,18 @@ import { Component, Vue, Ref } from "vue-property-decorator";
 // Element组件表单类型
 import { ElForm } from "element-ui/types/form";
 import { registerUser } from "../../api/index";
-import { passIsShow } from "../../tools/index";
 
 @Component({
   name: "Normail",
   components: {}
 })
 export default class Normail extends Vue {
+  /* =====================================普通注册数据校验======================================= */
   // 动态绑定输入框数据
   private registerData = {
     type: "normal",
     username: "",
     password: "",
-    checkPassword: "",
     captcha: "",
     checked: true
   };
@@ -115,16 +105,6 @@ export default class Normail extends Vue {
       callback(new Error("密码必须包含字母、数字和特殊符号！"));
     } else callback();
   };
-  // 确认密码校验
-  private validatePass2 = (rule: any, value: string, callback: any) => {
-    if (value === "") {
-      callback(new Error("请再次输入密码"));
-    } else if (value !== this.registerData.password) {
-      callback(new Error("两次输入密码不一致!"));
-    } else {
-      callback();
-    }
-  };
   // 验证码校验
   private validateCaptcha = (rule: any, value: string, callback: any) => {
     const reg = /^[A-Za-z0-9]{4}$/;
@@ -148,7 +128,6 @@ export default class Normail extends Vue {
   private registerRules = {
     username: [{ validator: this.validateName, trigger: "blur" }],
     password: [{ validator: this.validatePass, trigger: "blur" }],
-    checkPassword: [{ validator: this.validatePass2, trigger: "blur" }],
     captcha: [{ validator: this.validateCaptcha, trigger: "blur" }],
     checked: [{ validator: this.validateChecked, trigger: "change" }]
   };
@@ -199,7 +178,7 @@ export default class Normail extends Vue {
   // 密码明文切换
   private passInputType = true;
   private passIsShow() {
-    passIsShow(this);
+    this.passInputType = !this.passInputType;
   }
 
   // 重置表单

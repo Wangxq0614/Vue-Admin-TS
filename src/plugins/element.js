@@ -27,11 +27,13 @@ import {
   Table,
   TableColumn,
   Switch,
-  Pagination
+  Pagination,
+  Dialog
 } from "element-ui";
 
 //将组建提示框绑定到vue实例
 Vue.prototype.$message = Message;
+Vue.use(Dialog);
 Vue.use(Pagination);
 Vue.use(Switch);
 Vue.use(Table);

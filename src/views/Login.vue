@@ -142,7 +142,7 @@ export default class Login extends Vue {
   updateCaptcha() {
     this.captchaImage.src = `http://127.0.0.1:7001/imagecode?r=${Math.random()}`;
   }
-  // 提交注册
+  // 提交登录
   @Ref() readonly form!: ElForm;
   private onSubmit() {
     this.form.validate((flag: boolean) => {
@@ -150,6 +150,7 @@ export default class Login extends Vue {
         loginUser(this.loginData)
           .then((response: any) => {
             // 进一步判断
+
             if (response.status === 200 && response.data.code === 200) {
               // 保存登录状态
               sessionStorage.setItem(
