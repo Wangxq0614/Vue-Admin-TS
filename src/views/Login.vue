@@ -66,6 +66,7 @@ import { Component, Vue, Ref } from "vue-property-decorator";
 import { ElForm } from "element-ui/types/form";
 import { loginUser } from "../api/index";
 import OtherLogin from "../components/login/OtherLogin.vue";
+import { validatePass, validateCaptcha } from "../tools/index";
 
 @Component({
   name: "Login",
@@ -107,33 +108,12 @@ export default class Login extends Vue {
       callback(new Error("用户名格式错误，请重新输入！"));
     }
   };
-  // 密码校验
-  private validatePass = (rule: any, value: string, callback: any) => {
-    const reg = /^(?:(?=.*[0-9].*)(?=.*[A-Za-z].*)(?=.*[,\\.#%'\\+\\*\-:;^_`].*))[,\\.#%'\\+\\*\-:;^_`0-9A-Za-z]{8,}$/;
-    if (value === "") {
-      callback(new Error("请输入密码！"));
-    } else if (value.length < 8) {
-      callback(new Error("密码至少是8位！"));
-    } else if (!reg.test(value)) {
-      callback(new Error("密码必须包含字母、数字和特殊符号！"));
-    } else callback();
-  };
-  // 验证码校验
-  private validateCaptcha = (rule: any, value: string, callback: any) => {
-    const reg = /^[A-Za-z0-9]{4}$/;
-    if (value === "") {
-      callback(new Error("请输入验证码！"));
-    } else if (value.length < 4 || value.length > 4) {
-      callback(new Error("验证码只能是4位！"));
-    } else if (!reg.test(value)) {
-      callback(new Error("验证码只能是字母和数字！"));
-    } else callback();
-  };
+
   // 注册校验规则
   private loginRules = {
     username: [{ validator: this.validatePhone, trigger: "blur" }],
-    password: [{ validator: this.validatePass, trigger: "blur" }],
-    captcha: [{ validator: this.validateCaptcha, trigger: "blur" }]
+    password: [{ validator: validatePass, trigger: "blur" }],
+    captcha: [{ validator: validateCaptcha, trigger: "blur" }]
   };
 
   /* ======================================================================= */

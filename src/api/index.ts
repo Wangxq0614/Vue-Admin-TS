@@ -7,7 +7,7 @@ export const sendCode2Phone = (data: {}) => Network.get("/smscode", data); // �
 export const loginUser = (data: {}) => Network.post("/login", data); // 用户登录
 
 // 用户管理相关
-export const getUsers = () => Network.get("/api/v1/users"); // 获取所有用户
+export const getUsers = (data: {}) => Network.get("/api/v1/users", data); // 获取所有用户
 export const createUsers = (data: {}) => Network.post("/api/v1/users", data); // 创建新用户
 export const deleteUsers = (id: string) =>
   Network.delete(`/api/v1/users/${id}`); // 删除用户

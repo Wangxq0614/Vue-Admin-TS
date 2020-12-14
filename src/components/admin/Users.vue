@@ -13,10 +13,11 @@
       <!-- 头部操作区域 -->
       <div class="box-card-header">
         <el-row>
-          <el-col :span="20">
+          <el-col :span="18">
             <el-form :inline="true" :model="searchData">
               <el-form-item>
                 <el-select v-model="searchData.role" placeholder="--所有角色--">
+                  <el-option label="--所有角色--" value=""></el-option>
                   <el-option label="管理员" value="manger"></el-option>
                   <el-option label="普通用户" value="normal"></el-option>
                 </el-select>
@@ -26,6 +27,7 @@
                   v-model="searchData.origin"
                   placeholder="--所有来源--"
                 >
+                  <el-option label="--所有来源--" value=""></el-option>
                   <el-option label="本地注册" value="local"></el-option>
                   <el-option label="Github" value="github"></el-option>
                   <el-option label="QQ" value="qq"></el-option>
@@ -34,6 +36,7 @@
               </el-form-item>
               <el-form-item>
                 <el-select v-model="searchData.type" placeholder="--所有用户--">
+                  <el-option label="--所有用户--" value=""></el-option>
                   <el-option label="用户名" value="username"></el-option>
                   <el-option label="邮箱" value="email"></el-option>
                   <el-option label="手机" value="phone"></el-option>
@@ -53,11 +56,26 @@
               </el-form-item>
             </el-form>
           </el-col>
-          <el-col :span="4">
+          <el-col :span="6">
             <el-button type="primary" @click="showAddUserDialog">
               添加用户
             </el-button>
-            <el-button type="primary" @click="importUsers">导入用户</el-button>
+
+            <el-upload
+              class="upload-excel"
+              action="http://127.0.0.1:7001/api/v1/importUser/"
+              :show-file-list="false"
+              :on-success="handleExcelSuccess"
+              :before-upload="beforeExcelUpload"
+              accept=".xls"
+            >
+              <el-button type="primary">导入用户</el-button>
+            </el-upload>
+            <a href="http://127.0.0.1:7001/api/v1/exportUser/">
+              <el-button type="primary">
+                导出所有用户
+              </el-button>
+            </a>
           </el-col>
         </el-row>
       </div>
@@ -82,6 +100,7 @@
                 v-model="scope.row.userState"
                 active-color="#13ce66"
                 inactive-color="#ff4949"
+                @change="changeUserState(scope.row)"
               >
               </el-switch>
             </template>
@@ -112,10 +131,15 @@
     <div class="box-card-botoom">
       <el-card class="box-card">
         <el-pagination
-          :page-size="100"
+          :current-page="searchData.currentPage"
+          :page-sizes="[5, 10, 20, 50]"
+          :page-size="searchData.pageSize"
+          :total="totalCount"
           layout="total, sizes, prev, pager, next, jumper"
-          :total="100"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
         >
+          >
         </el-pagination>
       </el-card>
     </div>
@@ -191,6 +215,22 @@
       >
         <!-- 编辑用户表单 -->
         <el-form :model="editUserData" :rules="editUserRules" ref="form">
+          <el-form-item style="text-align:center;">
+            <el-upload
+              class="avatar-uploader"
+              action="http://127.0.0.1:7001/api/v1/posts/"
+              :show-file-list="false"
+              :on-success="handleAvatarSuccess"
+              :before-upload="beforeAvatarUpload"
+            >
+              <img
+                v-if="editUserData.avatarURL"
+                :src="editUserData.baseURL + editUserData.avatarURL"
+                class="avatar"
+              />
+              <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+            </el-upload>
+          </el-form-item>
           <el-form-item prop="username">
             <el-input
               v-model="editUserData.username"
@@ -254,26 +294,15 @@ import {
   deleteUsers,
   updateUsers
 } from "../../api/index";
+// 导出搜索结果
+import XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 @Component({
   name: "Users",
   components: {}
 })
 export default class Users extends Vue {
-  // 获取所有用户数据
-  private tableData = [];
-  created(): void {
-    getUsers()
-      .then((response: any) => {
-        if (response.status === 200 && response.data.code === 200) {
-          this.tableData = response.data?.data?.users;
-        }
-      })
-      .catch(error => {
-        (this as any).$message.error(error.response.data.msg);
-      });
-  }
-
   // 校验规则
   private validateName = (rule: any, value: string, callback: any) => {
     const reg = /^[A-Za-z0-9]{6,}$/;
@@ -319,29 +348,102 @@ export default class Users extends Vue {
   };
 
   /* =====================================搜索用户======================================= */
+  // 获取所有用户数据
+  private tableData: any[] = [];
+  // 总用户数量
+  private totalCount = 0;
   // 搜索数据
   private searchData = {
     role: "",
     origin: "",
     type: "",
-    key: ""
+    key: "",
+    currentPage: 1,
+    pageSize: 5
   };
   // 提交搜索
   private onSubmit() {
-    0;
+    this.getUserList();
+  }
+  /* =====================================分页======================================= */
+  // 获取用户数据
+  private getUserList() {
+    getUsers(this.searchData)
+      .then((response: any) => {
+        if (response.status === 200) {
+          this.tableData = response.data.data.users;
+          this.totalCount = response.data.data.totalCount;
+        } else {
+          (this as any).$message.error(response.data.msg);
+        }
+      })
+      .catch(error => {
+        (this as any).$message.error(error.response.data.msg);
+      });
+  }
+  created(): void {
+    this.getUserList();
+  }
+  // 每一页数量
+  private handleSizeChange(currentSize: any) {
+    this.searchData.pageSize = currentSize;
+    this.getUserList();
+  }
+  // 当前所在页数
+  private handleCurrentChange(currentPage: any) {
+    this.searchData.currentPage = currentPage;
+    this.getUserList();
   }
 
-  /* =====================================导入用户======================================= */
-  private importUsers() {
-    0;
-  }
-
-  /* =====================================导出用户======================================= */
-  // 导出用户信息
+  /* =====================================导出搜索结果======================================= */
+  // 导出搜索结果
   private exportUserInfo() {
-    0;
+    const user = this.tableData.length ? this.tableData[0] : null;
+    const data: any[] = [];
+    if (user) {
+      const cloumnTitles = Object.keys(user);
+      data.push(cloumnTitles);
+      this.tableData.forEach(user => {
+        const temp: any[] = [];
+        cloumnTitles.forEach(key => {
+          temp.push(user[key]);
+        });
+        data.push(temp);
+      });
+    }
+    // 根据二维数组生成表格中的数据
+    const sheet = XLSX.utils.aoa_to_sheet(data);
+    // 创建一个新表格
+    const workbook = XLSX.utils.book_new();
+    // 把数据添加到表格中，并给这个表格起一个名称
+    XLSX.utils.book_append_sheet(workbook, sheet, "user");
+    // 将生成好的表格保存到本地
+    // XLSX.writeFile(workbook, "user.xls"); // 有兼容问题
+    const wopts = { bookType: "xlsx", bookSST: false, type: "array" };
+    const wbout = XLSX.write(workbook, wopts);
+    saveAs(
+      new Blob([wbout], { type: "application/octet-stream" }),
+      "users.xlsx"
+    );
   }
+  /* =====================================导入用户======================================= */
+  // 导入成功之后
+  private handleExcelSuccess(res: any, file: any) {
+    console.log(res);
+  }
+  // 导入成功之前
+  private beforeExcelUpload(file: any) {
+    const isExcel = file.type === "application/vnd.ms-excel";
+    const isLt2M = file.size / 1024 / 1024 < 2;
 
+    if (!isExcel) {
+      (this as any).$message.error("上传的文件只能是 Excel 格式!");
+    }
+    if (!isLt2M) {
+      (this as any).$message.error("上传的文件大小不能超过 2MB!");
+    }
+    return isExcel && isLt2M;
+  }
   /* =====================================添加用户======================================= */
   // 数据检验
   private addUserRules = {
@@ -426,7 +528,8 @@ export default class Users extends Vue {
     username: "",
     email: "",
     phone: "",
-    password: ""
+    password: "",
+    avatarURL: ""
   };
   // 显示 / 隐藏编辑用户框
   private editUserDialogVisible = false;
@@ -435,6 +538,27 @@ export default class Users extends Vue {
     // 直接赋值会触发双向绑定，所以需要在修改成功之后再赋值
     this.editUserData = Object.assign(this.editUserData, user);
   }
+  // 用户头像上传
+  // 上传成功之后
+  private handleAvatarSuccess(res: any, file: any) {
+    if (res.code === 200) {
+      this.editUserData.avatarURL = res.data;
+    }
+  }
+  // 上传成功之前
+  private beforeAvatarUpload(file: any) {
+    const isJPG = file.type === "image/jpeg";
+    const isLt2M = file.size / 1024 / 1024 < 2;
+
+    if (!isJPG) {
+      (this as any).$message.error("上传头像图片只能是 JPG 格式!");
+    }
+    if (!isLt2M) {
+      (this as any).$message.error("上传头像图片大小不能超过 2MB!");
+    }
+    return isJPG && isLt2M;
+  }
+
   // 编辑用户
   private editUser() {
     this.form.validate((flag: boolean) => {
@@ -464,6 +588,22 @@ export default class Users extends Vue {
       }
     });
   }
+  /* =====================================修改用户状态======================================= */
+  changeUserState(user: any) {
+    updateUsers(user.id, user)
+      .then((response: any) => {
+        if (response.status === 200 && response.data.code === 200) {
+          (this as any).$message.success("更新用户状态成功");
+        } else {
+          user.userState = !user.userState;
+          (this as any).$message.error("更新用户状态失败");
+        }
+      })
+      .catch((error: any) => {
+        user.userState = !user.userState;
+        (this as any).$message.error("更新用户状态失败");
+      });
+  }
 
   /* =====================================other======================================= */
   // 清除缓存中保存的默认路径
@@ -475,7 +615,6 @@ export default class Users extends Vue {
   private closeDialog() {
     this.form.resetFields();
   }
-
   // 密码明文切换
   private passInputType = true;
   private passIsShow() {
@@ -488,6 +627,10 @@ export default class Users extends Vue {
 .Users {
   > .el-card {
     margin-top: 20px;
+    .upload-excel {
+      display: inline-block;
+      margin: 0 10px;
+    }
   }
   .box-card-header {
   }
@@ -509,6 +652,29 @@ export default class Users extends Vue {
         cursor: pointer;
       }
     }
+  }
+  .avatar-uploader .el-upload {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar-uploader .el-upload:hover {
+    border-color: #409eff;
+  }
+  .avatar-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 88px;
+    height: 88px;
+    line-height: 88px;
+    text-align: center;
+  }
+  .avatar {
+    width: 88px;
+    height: 88px;
+    display: block;
   }
 }
 </style>

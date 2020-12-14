@@ -66,7 +66,13 @@ import { Component, Vue, Ref } from "vue-property-decorator";
 // Element组件表单类型
 import { ElForm } from "element-ui/types/form";
 import { sendCode2Phone, registerUser } from "../../api/index";
-import { sendCode } from "../../tools/index";
+import {
+  sendCode,
+  validatePhone,
+  validatePass,
+  validateCaptcha,
+  validateChecked
+} from "../../tools/index";
 
 @Component({
   name: "Phone",
@@ -84,51 +90,13 @@ export default class Phone extends Vue {
   };
 
   /* ======================================================================= */
-  // 手机号校验
-  private validatePhone = (rule: any, value: string, callback: any) => {
-    const reg = /^1[3456789]\d{9}$/;
-    if (value === "") {
-      callback(new Error("请输入手机号！"));
-    } else if (!reg.test(value)) {
-      callback(new Error("请手机号有误, 或此手机号暂不支持！"));
-    } else callback();
-  };
-  // 密码校验
-  private validatePass = (rule: any, value: string, callback: any) => {
-    const reg = /^(?:(?=.*[0-9].*)(?=.*[A-Za-z].*)(?=.*[,\\.#%'\\+\\*\-:;^_`].*))[,\\.#%'\\+\\*\-:;^_`0-9A-Za-z]{8,}$/;
-    if (value === "") {
-      callback(new Error("请输入密码！"));
-    } else if (value.length < 8) {
-      callback(new Error("密码至少是8位！"));
-    } else if (!reg.test(value)) {
-      callback(new Error("密码必须包含字母、数字和特殊符号！"));
-    } else callback();
-  };
-  // 验证码校验
-  private validateCaptcha = (rule: any, value: string, callback: any) => {
-    const reg = /^[A-Za-z0-9]{4}$/;
-    if (value === "") {
-      callback(new Error("请输入验证码！"));
-    } else if (value.length < 4 || value.length > 4) {
-      callback(new Error("验证码只能是4位！"));
-    } else if (!reg.test(value)) {
-      callback(new Error("验证码只能是字母和数字！"));
-    } else callback();
-  };
-  // 用户协议校验
-  private validateChecked = (rule: any, value: string, callback: any) => {
-    if (!value) {
-      callback(new Error("请阅读并同意用户协议！"));
-    } else {
-      callback();
-    }
-  };
+
   // 注册校验规则
   private registerRules = {
-    phone: [{ validator: this.validatePhone, trigger: "blur" }],
-    password: [{ validator: this.validatePass, trigger: "blur" }],
-    captcha: [{ validator: this.validateCaptcha, trigger: "blur" }],
-    checked: [{ validator: this.validateChecked, trigger: "change" }]
+    phone: [{ validator: validatePhone, trigger: "blur" }],
+    password: [{ validator: validatePass, trigger: "blur" }],
+    captcha: [{ validator: validateCaptcha, trigger: "blur" }],
+    checked: [{ validator: validateChecked, trigger: "change" }]
   };
 
   // 发送手机验证码
